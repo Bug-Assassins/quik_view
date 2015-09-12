@@ -25,4 +25,5 @@ urlpatterns = [
     url(r'^live_stat/?$', live_data_render),
     url(r'^get_live/?$', get_live_data),
     url(r'^get_trending/?$', get_trending_data),
+    url(r'^get_heat_map/?$', get_heat_map)
 ]
