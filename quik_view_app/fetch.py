@@ -15,8 +15,7 @@ def get_response(params) :
 
 def get_ads_by_category() :
 
-    attribute_list = {'cityName', 'categoryName', 'stateName', 'ad_locality'}
-    allData = []
+    attribute_list = {'cityName', 'categoryName', 'stateName', 'ad_locality', 'geo_pin'}
     record = {}
     for category in category_data :
       id = category['CategoryId']
@@ -27,10 +26,12 @@ def get_ads_by_category() :
           total = resp['AdsByCategoryResponse']['AdsByCategoryData']['total']
           ads = resp['AdsByCategoryResponse']['AdsByCategoryData']['docs']
           for ad in ads :
+            record.clear()
             for attribute in attribute_list :
-              record[attribute] = ad[attribute]
+              if attribute in ad :
+                record[attribute] = ad[attribute]
             record['categoryId'] = id
-            allData.append(record)
+            print record
           break
         except:
           sleep(5)       
@@ -42,14 +43,15 @@ def get_ads_by_category() :
           ads = resp['AdsByCategoryResponse']['AdsByCategoryData']['docs']
           i += 100
           for ad in ads :
+            record.clear()
             for attribute in attribute_list :
-              record[attribute] = ad[attribute]
+              if attribute in ad :
+                record[attribute] = ad[attribute]
             record['categoryId'] = id
-            allData.append(record)
+            print record
         except:
           sleep(5)
-    print allData
-
+      
 if __name__ == '__main__':
   get_ads_by_category()
   
