@@ -1,6 +1,7 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
-    <title>Interactive Line Graph</title>
+    <title>Quik View - Live Real Time Quikr Statistics</title>
     <script src="/static/d3.min.js"></script>
     <script src="/static/jquery-1.7.2.min.js"></script>
     <!--<script src="sample_data.js"></script>-->
@@ -37,15 +38,16 @@
         async : false,
         success : function(result, status, xhr) {data = result;},
       });
-      console.log(data);
       return data;
     }
 
+    var ms = new Date();
+    ms = ms.getTime();
     var data = {
-      "start": 1336594920000,
-      "end": 1336598520000,
+      "start": ms - 3600000,
+      "end": ms,
       "step": 60000,
-      "colors" : ["red"],
+      "colors" : ["blue"],
       "scale" : "linear",
       "names": ["Ads Count"],
       "values" : [[]]
@@ -60,12 +62,12 @@
     }
 
     var data3 = {
-      "start": 1336594920000,
-      "end": 1336598520000,
+      "start": ms - 3600000,
+      "end": ms,
       "step": 60000,
       "colors" : ["red", "black"],
       "scale" : "linear",
-      "axis" : ["left", "right"],
+      "axis" : ["left", "left"],
       "names": ["Active Chats", "Online Users"],
       "values" : [[], []]
     }

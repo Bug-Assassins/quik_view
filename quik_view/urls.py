@@ -21,6 +21,7 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^/?$', home),
     url(r'^map/?$', map_plot),
+    url(r'^trending/?$', trending_plot),
     url(r'^live_stat/?$', live_data_render),
     url(r'^get_live/?$', get_live_data),
     url(r'^get_trending/?$', get_trending_data),
