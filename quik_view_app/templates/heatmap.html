@@ -3,6 +3,11 @@
   <head>
     <meta charset="utf-8">
     <title>Heatmaps</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <style>
       html, body {
         height: 100%;
@@ -38,21 +43,59 @@
         {% endfor %}
         </select>
       </div>
-
       <div>
-        <label for="category">Category</label>
-      	<select id="category">
-        {% for i in category %}
-          <option value="{{i.0}}"> {{i.1}} </option>
-        {% endfor %}
-        </select>
+          <!-- Trigger the modal with a button -->
+        <button type="button" onclick="set_checkboxes();" class="btn btn-info btn-lg" data-toggle="modal" data-target="#category_modal">Select Areas</button>
+
       </div>
-      <button>Update</button>
+
+
     </div>
+
     <div id="map"></div>
+
+
+    <div id="category_modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Category List</h4>
+      </div>
+      <div class="modal-body">
+
+        <div id="cat_checkbox_div">
+          {%for cat in category%}
+          <input type="checkbox" id="cat_{{cat.0}}" name="cat_{{cat.0}}" >
+          <label for="cat_{{cat.0}}">{{cat.1}}</label>
+          {% endfor%}
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" onclick="update_filters();" class="btn btn-success" data-dismiss="modal">Update Filter</button>
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+
+  </div>
+  </div>
     <script>
 
+
 var map, heatmap;
+{% autoescape off %}
+var category_count = {{category_count}};
+var category = {{category}};
+{% endautoescape %}
+var category_set = [];
+
+for (var i = 0; i < category.length; i++) {
+  category_set.push(category[i]);
+  category_set[i][1] = '0'; 
+}
 
 function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
@@ -61,33 +104,14 @@ function initMap() {
     mapTypeId: google.maps.MapTypeId.ROADMAP
   });
   heatmap = new google.maps.visualization.HeatmapLayer({
-    dissipating : true,
-    gradient : getGradient(),
     data: getPoints(),
     map: map,
-    radius: 100
+    radius: 10
   });
-}
-function getGradient() {
-  return [
-    'rgba(0, 255, 255, 0)',
-    'rgba(0, 255, 255, 1)',
-    'rgba(0, 191, 255, 1)',
-    'rgba(0, 127, 255, 1)',
-    'rgba(0, 63, 255, 1)',
-    'rgba(0, 0, 255, 1)',
-    'rgba(0, 0, 223, 1)',
-    'rgba(0, 0, 191, 1)',
-    'rgba(0, 0, 159, 1)',
-    'rgba(0, 0, 127, 1)',
-    'rgba(63, 0, 91, 1)',
-    'rgba(127, 0, 63, 1)',
-    'rgba(191, 0, 31, 1)',
-    'rgba(255, 0, 0, 1)'
-  ];
+  
 }
 function toggleHeatmap() {
-  heatmap.setMap(heatmap.getMap() ? null : map);
+  heatmap.set(heatmap.getMap() ? null : map);
 }
 
 function changeGradient() {
@@ -118,14 +142,45 @@ function changeOpacity() {
   heatmap.set('opacity', heatmap.get('opacity') ? null : 0.2);
 }
 
-// Heatmap data: 500 Points
-var category_count = {{category_count}};
 function getPoints() {
   var ret = [];
-  
+  for (var i = 0; i < category_count.length; i++) {
+    var cati = category_count[i];
+    if (category_set[i][1] == "1") {
+      for (var j = 1; j < cati.length; j++) {
+        ret.push(
+          {
+            'location' : new google.maps.LatLng(parseFloat(cati[j][0]), parseFloat(cati[j][1])), 'weight' : parseFloat(cati[j][2])
+          });
+      }
+    }
+  }
+  return ret;
+}
+function set_checkboxes() {
+  for (var i = 0; i < category_set.length; i++) {
+    if (category_set[i][1] == "1") {
+      $('#cat_' + category_set[i][0]).prop('checked', true);
+    }
+    else {
+      $('#cat_' + category_set[i][0]).prop('checked', false); 
+    }
+  }
 }
 
-    </script>
+function update_filters() {
+  for (var i = 0; i < category_set.length; i++) {
+      if ($('#cat_' + category_set[i][0]).is(":checked") ) {
+        category_set[i][1] = "1";
+      }
+      else {
+        category_set[i][1] = "0";
+      }
+  }
+  heatmap.set('data', getPoints());
+}
+
+</script>
     <script async defer
         src="https://maps.googleapis.com/maps/api/js?libraries=visualization&callback=initMap">
     </script>
