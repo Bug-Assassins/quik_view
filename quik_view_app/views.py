@@ -26,6 +26,19 @@ def get_trending_data(request):
   resp = json.load(urllib2.urlopen(req))
   return JsonResponse(resp)
 
+def get_heat_map_context():
+  # First list is category (id, name) tuple
+  # Second list is city (id, name) tuple
+  return {
+            'category' : [[10, 'First category'], [11, 'Second category']], 
+            'city' : [[13, 'City1'], [12, 'City2']],
+            'selected_city' : [13, 'City1'],
+            'category_count' : [[37.751266, -122.403355, [[10, 20], [11, 2]]]]
+          }
+
+def get_heat_map(request):
+  return render(request, 'heatmap.html', get_heat_map_context())
+
 def get_live_data(request) :
   req = urllib2.Request('https://api.quikr.com/public/liveOnQuikr', headers = {
     "X-Quikr-App-Id" : 524,
