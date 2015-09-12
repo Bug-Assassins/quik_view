@@ -1,15 +1,17 @@
 from django.shortcuts import render
 import urllib2
 from django.http import JsonResponse
-from django.http import HttpResponse
-import json
+from django.http import HttpResponseRedirect
+import json, urllib
 
 # Create your views here.
 def home(request):
   return render(request, 'index.html', {})
 
 def map_plot(request):
-  return render(request, 'map.html', {})
+  if 'city' not in request.GET:
+    return HttpResponseRedirect('/')
+  return render(request, 'map.html', {'city' : request.GET['city']})
 
 def live_data_render(request):
   return render(request, 'live_data.html', {})
@@ -35,7 +37,9 @@ def get_live_data(request) :
   return JsonResponse(resp['liveOnQuikrResponse']['liveOnQuikrData'])
 
 def get_ads_by_category(request) :
-  req = urllib2.Request('https://api.quikr.com/public/adsByCategory', headers = {
+  params = urllib.urlencode(request.GET)
+  req = urllib2.Request('https://api.quikr.com/public/adsByCategory?' + params,
+    headers = {
     "X-Quikr-App-Id" : 524,
     "X-Quikr-Token-Id" : 2902886,
     "X-Quikr-Signature" : "fb22e528145f29eae46f1dfc304751b7dafd53e3",

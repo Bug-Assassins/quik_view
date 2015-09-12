@@ -12,15 +12,36 @@
   </style>
   <script src="https://maps.googleapis.com/maps/api/js"></script>
   <script>
+    function get_advertisement_data() {
+      var data = {};
+      $.ajax({
+        url : '/get_live/',
+        type: 'GET',
+        async : false,
+        success : function(result, status, xhr) {data = result;},
+      });
+      console.log(data);
+      return data;
+    }
     function initialize() {
       var mapCanvas = document.getElementById('map');
+      var geocoder =  new google.maps.Geocoder();
       var map_centre = {lat : 28.64649963, lng: 77.22570038};
+      geocoder.geocode({'address': '{% city %}, ' + ' India'},
+        function(results, status) {
+          if (status == google.maps.GeocoderStatus.OK) {
+            map_centre['lat'] = results[0].geometry.location.lat();
+            map_centre['lng'] = results[0].geometry.location.lng();
+          }
+        }
+      );
       var mapOptions = {
         center: map_centre,
         zoom: 7,
         mapTypeId: google.maps.MapTypeId.ROADMAP
       }
       var map = new google.maps.Map(mapCanvas, mapOptions);
+
       var marker = new google.maps.Marker({
         position: map_centre,
         map: map,
