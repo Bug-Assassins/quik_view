@@ -44,10 +44,10 @@ def get_heat_map_context():
   # First list is category (id, name) tuple
   # Second list is city (id, name) tuple
   return {
-            'category' : [[10, 'First category'], [11, 'Second category']],
-            'city' : [[13, 'City1'], [12, 'City2']],
-            'selected_city' : [13, 'City1'],
-            'category_count' : [[37.751266, -122.403355, [[10, 20], [11, 2]]]]
+            'category' : [['10', 'First category'], ['11', 'Second category']], 
+            'city' : [['13', 'City1'], ['12', 'City2']],
+            'selected_city' : ['13', 'City1'],
+            'category_count' : [['10', ['37.751266', '-122.403355', '5']], ['11', ['37.751266', '-122.403355', '2']]] 
           }
 
 def get_heat_map(request):
