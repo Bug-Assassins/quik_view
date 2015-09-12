@@ -1,21 +1,113 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Quik View - Data Visualization for Quikr</title>
-</head>
-<body>
-  <p>Please Select One of the following available visualization : </p>
-  <ul>
-    <li><a href="/live_stat">Live Statistics</a></li>
-    <li>
-      Add Mapper -
-      <form action="/ad_mapper" method="GET">
-        <select name="city">
-
-        </select>
-      </form>
-    </li>
-  </ul>
-</body>
+<!doctype html>
+<html class="no-js" lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>Quik View - {% block title %}{% endblock %}</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="apple-touch-icon" href="apple-touch-icon.png">
+        <link rel="stylesheet" href="/static/bootstrap.min.css">
+        <script src="/static/jquery-1.11.3.min.js"></script>
+        <script src="/static/bootstrap.min.js"></script>
+        <style>
+          html {
+            position: relative;
+            min-height: 100%;
+          }
+          body {
+            margin-bottom: 60px;
+          }
+          .footer {
+            position: absolute;
+            bottom: 0;
+            width: inherit;
+            height: 60px;
+            background-color: #f5f5f5;
+          }
+          img {
+            display:block;
+            margin:auto;
+            width:100%;
+          }
+          figcaption {
+            text-align: center;
+          }
+        </style>
+    </head>
+    <body>
+    <div class="container">
+      <nav class="navbar navbar-default">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">Quikr View</a>
+          </div>
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+              <li><a href="/">Home</a></li>
+              <li><a href="/live_stat/">Quikr Live</a></li>
+              <li><a href="/trending/">Trending</a></li>
+              <li><a href="/get_heat_map/">Ad Heat</a></li>
+              <li><a href="/map/">Ad Visualizer</a></li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+      {% block main_content %}
+      <div class="jumbotron text-center">
+        <h1>Quik View</h1>
+        <p>Data Visualization for Quikr</p>
+        <p>Team Bug Assassins - NITK Surathkal</p>
+      </div>
+      <div class="row">
+        <div class="col-lg-3 col-md-6 col-sm-12">
+          <a href="/live_stat/">
+            <figure style="width: 100%;">
+              <img src="/static/live.png"/>
+              <figcaption>Live Visualization of Quikr Platform</figcaption>
+            </figure>
+          </a>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12">
+          <a href="/trending/">
+            <figure style="width: 100%;">
+              <img src="/static/trending.png"/>
+              <figcaption>Trending Products on Quikr</figcaption>
+            </figure>
+          </a>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12">
+          <a href="/get_heat_map/">
+            <figure style="width: 100%;">
+              <img src="/static/heat.png"/>
+              <figcaption>Heat Map for all the Ads in your Area</figcaption>
+            </figure>
+          </a>
+        </div>
+        <div class="col-lg-3 col-md-6 col-sm-12">
+          <a href="/map/">
+            <figure style="width: 100%;">
+              <img src="/static/pin.png"/>
+              <figcaption>Visualization of Ad Locations</figcaption>
+            </figure>
+          </a>
+        </div>
+      </div>
+      {% endblock %}
+      <footer class="footer">
+        <div class="container" style="padding-top: 30px;">
+          <p style="float: left;">
+            Copyright &copy; 2015, <a href="https://github.com/Bug-Assassins">Bug Assassins</a>
+          </p>
+          <p style="float: right;">Quikr Hackathon - 12<sup>th</sup> to 13<sup>th</sup> September, 2015</p>
+        </div>
+      </footer>
+    </div>
+  </body>
 </html>

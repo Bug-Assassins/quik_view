@@ -1,36 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <title>Quik View - Live Real Time Quikr Statistics</title>
-    <script src="/static/d3.min.js"></script>
-    <script src="/static/jquery-1.7.2.min.js"></script>
-    <!--<script src="sample_data.js"></script>-->
-    <script src="/static/line-graph.js"></script>
-    <link rel="stylesheet" href="/static/style.css" type="text/css">
-    <style>
-      body {
-        font-family: "Helvetica Neue", Helvetica;
-      }
-
-      p {
-        clear:both;
-        top: 20px;
-      }
-
-      div.aGraph {
-        margin-bottom: 30px;
-      }
-    </style>
-  </head>
-  <body>
-  <h1>Quickr Live Statistics</h1>
+{% extends 'index.html' %}
+{% block title %} Live Real Time Quikr Statistics {% endblock %}
+{% block main_content%}
+  <script src="/static/d3.min.js"></script>
+  <script src="/static/line-graph.js"></script>
+  <link rel="stylesheet" href="/static/style.css" type="text/css">
+  <style>
+    body {
+      font-family: "Helvetica Neue", Helvetica;
+    }
+    div.aGraph {
+      margin-bottom: 30px;
+    }
+  </style>
+  <h1 style="margin: 0px auto; text-align: center;">Quickr Live Statistics</h1>
   <h5><a href="/">Go Back</a></h5>
+  <p>
+    This is a visualization for the Live Quikr API. The first plot shows the Ad Counts while the second plot
+    visualizes the number of online users and active online chats. Following is the main features :
+    <ul>
+      <li>All the three scales - Linear, Log and Power has been provided for better visibility</li>
+      <li>The graph updates itself <b>every minute</b> by querying the liveonQuikr API</li>
+      <li>Tool tips has been provided for immediate access to data values</li>
+      <li>One Hour of History is maintained</li>
+      <li>Dual Scale Axis for better comparison</li>
+      <li>Vector Graphics Based Charts</li>
+    </ul>
+  </p>
   <div id="graph1" class="aGraph" style="position:relative;width:100%;height:400px"></div>
   <div id="graph3" class="aGraph" style="position:relative;width:100%;height:400px"></div>
-
   <script>
     function get_live_data() {
       var data = {};
+      console.log("getting Data");
       $.ajax({
         timeout: 30000,
         url : '/get_live/',
@@ -38,9 +39,9 @@
         async : false,
         success : function(result, status, xhr) {data = result;},
       });
+      console.log(data);
       return data;
     }
-
     var ms = new Date();
     ms = ms.getTime();
     var data = {
@@ -67,7 +68,7 @@
       "step": 60000,
       "colors" : ["red", "black"],
       "scale" : "linear",
-      "axis" : ["left", "left"],
+      "axis" : ["left", "right"],
       "names": ["Active Chats", "Online Users"],
       "values" : [[], []]
     }
@@ -81,9 +82,10 @@
     }
 
     var test_data = get_live_data();
-    data['values'][0].push(2 * test_data['adCount']);
-    data3['values'][0].push(2 * test_data['activeChats']);
-    data3['values'][1].push(2 * test_data['onlineUsers']);
+    console.log(test_data);
+    data['values'][0].push(3 * test_data['adCount']);
+    data3['values'][0].push(3 * test_data['activeChats']);
+    data3['values'][1].push(3 * test_data['onlineUsers']);
     for(var i = 0; i < 59; i++)
     {
       //var new_val = Math.floor((Math.random() * 1000) + 1);
@@ -94,27 +96,25 @@
     var l1 = new LineGraph({containerId: 'graph1', data: data});
     var l3 = new LineGraph({containerId: 'graph3', data: data3});
 
-  setInterval(function() {
-    var newData1 = [];
-    var newData3 = [];
-    var error = 0;
-    d = get_live_data();
-    if(!jQuery.isEmptyObject(d))
-    {
-      newData1[0]= [d['adCount']];
-      newData3[0] = [d['activeChats']];
-      newData3[1] = [d['onlineUsers']];
-      dataA.values = newData1;
-      dataC.values = newData3;
-      dataA.start = dataA.start + dataA.step;
-      dataA.end = dataA.end + dataA.step;
-      dataC.start = dataC.start + dataC.step;
-      dataC.end = dataC.end + dataC.step;
-      l1.slideData(dataA);
-      l3.slideData(dataC);
-    }
-  }, 60000);
-
+    setInterval(function() {
+      var newData1 = [];
+      var newData3 = [];
+      var error = 0;
+      d = get_live_data();
+      if(!jQuery.isEmptyObject(d))
+      {
+        newData1[0]= [d['adCount']];
+        newData3[0] = [d['activeChats']];
+        newData3[1] = [d['onlineUsers']];
+        dataA.values = newData1;
+        dataC.values = newData3;
+        dataA.start = dataA.start + dataA.step;
+        dataA.end = dataA.end + dataA.step;
+        dataC.start = dataC.start + dataC.step;
+        dataC.end = dataC.end + dataC.step;
+        l1.slideData(dataA);
+        l3.slideData(dataC);
+      }
+    }, 60000);
   </script>
-  </body>
-</html>
+{% endblock %}

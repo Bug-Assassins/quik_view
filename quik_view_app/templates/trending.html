@@ -1,71 +1,121 @@
+{% extends 'index.html' %}
+{% block title %} Currently Trending Classifieds on Quikr {% endblock %}
+{% block main_content%}
+  <style>
+    #floating-panel {
+      position: fixed;
+      right: 10px;
+      top: 50%;
+      z-index: 5;
+      background-color: #fff;
+      padding: 5px;
+      border: 1px solid #999;
+      text-align: center;
+      font-family: 'Roboto','sans-serif';
+      line-height: 30px;
+      padding-left: 10px;
+    }
+  </style>
+  <script src="/static/d3.min.js"></script>
+  <h1 style="margin: 0px auto; text-align: center;" id="head_trend">Trending Products on Quikr</h1>
+  <h5><a href="/">Go Back</a></h5>
+  <p>
+    This chart visualizes the trending products on the Quikr at the moment. This Chart uses
+    the trending API provided by the Quikr Development API. The main features of this plot are:
+    <ul>
+      <li>Dynamic and random colors for better aesthetics</li>
+      <li>Placement of bubbles in a spiral fashion to accommodate large number of products</li>
+      <li>Size of Bubble proportional to the count</li>
+      <li>Tool Tips that gives quick access to count on each product</li>
+      <li>City wise visualization</li>
+      <li>Dynamically selectable city with asynchronous updates</li>
+    </ul>
+  </p>
+  <div id="floating-panel">
+    <div>
+      <label for="city">City</label>
+      <select id="city_name" name="city_name">
+      <option value="-1"> All Cites </option>
+      {% for key, val in city_list.items %}
+        <option value="{{val}}"> {{key}} </option>
+      {% endfor %}
+      </select>
+    </div>
+    <button id="update_button">Update</button>
+  </div>
+  <section id="graph"></section>
+  <script>
+    var diam = $('#head_trend').width();
+    var diameter = diam,
+        format = d3.format(",d"),
+        color = d3.scale.category20c();
+
+    var bubble = d3.layout.pack()
+        .sort(null)
+        .size([diameter, diameter])
+        .padding(3);
+
+    var svg = d3.select("#graph").append("svg")
+        .attr("width", diameter)
+        .attr("height", diameter)
+        .attr("class", "bubble");
+
+    // Returns a flattened hierarchy containing all leaf nodes under the root.
+    function classes(root) {
+      var classes = [];
+
+      function recurse(name, node) {
+        if (node.children) node.children.forEach(function(child) { recurse(node.name, child); });
+        else classes.push({'packageName': name, 'className': node.name, 'value': node.size});
+      }
+
+      recurse(null, root);
+      return {children: classes};
+    }
+
+    d3.select(self.frameElement).style("height", diameter + "px");
+    function draw_chart(data){
+      $.ajax({
+        timeout: 5000,
+        url : '/get_trending',
+        type: 'GET',
+        data: data,
+        success : function on_trending_data_load(result, status, xhr){
+          console.log(result);
+          console.log("drawing");
+          svg.selectAll("*").remove();
+          var node = svg.selectAll(".node")
+            .data(bubble.nodes(classes(result))
+            .filter(function(d) { return !d.children; }))
+          .enter().append("g")
+            .attr("class", "node")
+            .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
+          node.append("title")
+              .text(function(d) { return d.className + ": " + format(d.value); });
+
+          node.append("circle")
+              .attr("r", function(d) { return d.r; })
+              .style("fill", function(d) { return color(d.packageName + Math.random() * 10); });
+
+          node.append("text")
+              .attr("dy", ".3em")
+              .style("text-anchor", "middle")
+              .text(function(d) { return d.className.substring(0, d.r / 3); });
+          }
+      });
+    }
+    $(function() { data = {'city' : $('#city_name').val()}; if(data['city'] == -1) data = {}; draw_chart(data); });
+    $('#update_button').click(function(){data = {'city' : $('#city_name').val()}; if(data['city'] == -1) data = {}; draw_chart(data);});
+  </script>
+{% endblock %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Quik View - Currently Trending Classifieds</title>
+
 </head>
 <body>
-  <script src="/static/d3.min.js"></script>
-  <script src="/static/jquery-1.7.2.min.js"></script>
-  <h1>Trending on Quikr At this Time</h1>
-  <h5><a href="/">Go Back</a></h5>
-  <section id="graph" style="margin-top : -160px;"></section>
-  <script>
-  var diameter = 900,
-      format = d3.format(",d"),
-      color = d3.scale.category20c();
-
-  var bubble = d3.layout.pack()
-      .sort(null)
-      .size([diameter, diameter])
-      .padding(3);
-
-  var svg = d3.select("#graph").append("svg")
-      .attr("width", diameter)
-      .attr("height", diameter)
-      .attr("class", "bubble");
-
-  // Returns a flattened hierarchy containing all leaf nodes under the root.
-  function classes(root) {
-    var classes = [];
-
-    function recurse(name, node) {
-      if (node.children) node.children.forEach(function(child) { recurse(node.name, child); });
-      else classes.push({'packageName': name, 'className': node.name, 'value': node.size});
-    }
-
-    recurse(null, root);
-    return {children: classes};
-  }
-
-  d3.select(self.frameElement).style("height", diameter + "px");
-  $(function() {
-    $.ajax({
-      timeout: 5000,
-      url : '/get_trending',
-      type: 'GET',
-      success : function on_trending_data_load(result, status, xhr){
-        var node = svg.selectAll(".node")
-          .data(bubble.nodes(classes(result))
-          .filter(function(d) { return !d.children; }))
-        .enter().append("g")
-          .attr("class", "node")
-          .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
-
-        node.append("title")
-            .text(function(d) { return d.className + ": " + format(d.value); });
-
-        node.append("circle")
-            .attr("r", function(d) { return d.r; })
-            .style("fill", function(d) { return color(d.packageName + Math.random() * 10); });
-
-        node.append("text")
-            .attr("dy", ".3em")
-            .style("text-anchor", "middle")
-            .text(function(d) { return d.className.substring(0, d.r / 3); });
-        }
-    });
-  });
-  </script>
 </body>
 </html>

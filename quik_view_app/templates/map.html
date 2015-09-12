@@ -27,26 +27,31 @@
       var mapCanvas = document.getElementById('map');
       var geocoder =  new google.maps.Geocoder();
       var map_centre = {lat : 28.64649963, lng: 77.22570038};
-      geocoder.geocode({'address': '{% city %}, ' + ' India'},
+      geocoder.geocode({'address': 'Kolkata, '+ 'India'},
         function(results, status) {
           if (status == google.maps.GeocoderStatus.OK) {
             map_centre['lat'] = results[0].geometry.location.lat();
             map_centre['lng'] = results[0].geometry.location.lng();
+            console.log(map_centre);
+            var mapOptions = {
+              center: map_centre,
+              zoom: 7,
+              mapTypeId: google.maps.MapTypeId.ROADMAP
+            }
+            var map = new google.maps.Map(mapCanvas, mapOptions);
+
+            var marker = new google.maps.Marker({
+              position: map_centre,
+              map: map,
+              title: 'Sample Marker'
+            });
+          }
+          else
+          {
+            alert("Couldn't Connect to Server !! Please Refresh !!");
           }
         }
       );
-      var mapOptions = {
-        center: map_centre,
-        zoom: 7,
-        mapTypeId: google.maps.MapTypeId.ROADMAP
-      }
-      var map = new google.maps.Map(mapCanvas, mapOptions);
-
-      var marker = new google.maps.Marker({
-        position: map_centre,
-        map: map,
-        title: 'Sample Marker'
-      });
     }
     google.maps.event.addDomListener(window, 'load', initialize);
   </script>
