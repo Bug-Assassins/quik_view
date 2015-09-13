@@ -31,7 +31,6 @@
   <script>
     function get_live_data() {
       var data = {};
-      console.log("getting Data");
       $.ajax({
         timeout: 30000,
         url : '/get_live/',
@@ -39,7 +38,6 @@
         async : false,
         success : function(result, status, xhr) {data = result;},
       });
-      console.log(data);
       return data;
     }
     var ms = new Date();
@@ -82,7 +80,6 @@
     }
 
     var test_data = get_live_data();
-    console.log(test_data);
     data['values'][0].push(3 * test_data['adCount']);
     data3['values'][0].push(3 * test_data['activeChats']);
     data3['values'][1].push(3 * test_data['onlineUsers']);

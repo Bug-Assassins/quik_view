@@ -1,62 +1,135 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Quik View - Classified Mapper</title>
-    <style>
-      #map{
-        width: 100%;
-        height:100vh;
-        background-color: #CCC;
-      }
+{% extends 'index.html' %}
+{% block title %} Quikr Ad Mapper {% endblock %}
+{% block main_content%}
+<body>
+  <h1 style="margin: 0px auto; text-align: center;" id="head_trend">Ad Location Visualizer on Quikr</h1>
+  <h5><a href="/">Go Back</a></h5>
+  <p>
+    Please Select the City in the floating panel.
+  </p>
+  <div id="map"></div>
+  <style>
+    #map{
+      width: 100%;
+      height:100vh;
+      background-color: #CCC;
+    }
+    #floating-panel {
+      position: fixed;
+      right: 10px;
+      top: 50%;
+      z-index: 5;
+      background-color: #fff;
+      padding: 5px;
+      border: 1px solid #999;
+      text-align: center;
+      font-family: 'Roboto','sans-serif';
+      line-height: 30px;
+      padding-left: 10px;
+    }
   </style>
+  <div id="floating-panel">
+    <div>
+      <label for="city">City</label>
+      <select id="city_name" name="city_name">
+      {% for city in city_list %}
+        <option value="{{city.2}},{{city.3}}"> {{city.0}} </option>
+      {% endfor %}
+      </select>
+    </div>
+    <button id="update_button">Update</button>
+  </div>
   <script src="https://maps.googleapis.com/maps/api/js"></script>
   <script>
-    function get_advertisement_data() {
-      var data = {};
-      $.ajax({
-        url : '/get_live/',
-        type: 'GET',
-        async : false,
-        success : function(result, status, xhr) {data = result;},
-      });
-      console.log(data);
-      return data;
-    }
+    console.log("Loaded");
+    var map = 0;
+    var marker_list = [];
     function initialize() {
       var mapCanvas = document.getElementById('map');
-      var geocoder =  new google.maps.Geocoder();
-      var map_centre = {lat : 28.64649963, lng: 77.22570038};
-      geocoder.geocode({'address': 'Kolkata, '+ 'India'},
-        function(results, status) {
-          if (status == google.maps.GeocoderStatus.OK) {
-            map_centre['lat'] = results[0].geometry.location.lat();
-            map_centre['lng'] = results[0].geometry.location.lng();
-            console.log(map_centre);
-            var mapOptions = {
-              center: map_centre,
-              zoom: 7,
-              mapTypeId: google.maps.MapTypeId.ROADMAP
-            }
-            var map = new google.maps.Map(mapCanvas, mapOptions);
-
-            var marker = new google.maps.Marker({
-              position: map_centre,
-              map: map,
-              title: 'Sample Marker'
-            });
-          }
-          else
-          {
-            alert("Couldn't Connect to Server !! Please Refresh !!");
-          }
-        }
-      );
+      var sc = $('#city_name').val().split(',');
+      console.log(sc);
+      var cent = {'lat': parseFloat(sc[0]), 'lng': parseFloat(sc[1])}
+      console.log(cent);
+      var mapOptions = {
+        center: cent,
+        zoom: 7,
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+      }
+      map = new google.maps.Map(mapCanvas, mapOptions);
+      get_all_ads_in_loc(cent);
     }
+    console.log('check');
+    function add_markers(re) {
+      for(var i = 0; i < re['docs'].length; i++) {
+        var ad = re['docs'][i];
+        var marker = new google.maps.Marker({
+          position: {'lat' : ad['lat'], 'lng' : ad['lng']},
+          map: map,
+          title: ad['t']
+        });
+        marker_list.push(marker);
+      }
+    }
+    function get_sync_total(geopos) {
+      var ret = 0;
+      $.ajax({
+        data : {
+          'lat' : geopos['lat'],
+          'lon' : geopos['lng'],
+          'from' : 0,
+          'size' : 1
+        },
+        url : '/get_loc_ad/',
+        type: 'GET',
+        async : false,
+        success : function(re, status, xhr) {
+          console.log("Sync Query = ");
+          console.log(re);
+          ret = parseInt(re['total']);
+        }
+      });
+      return ret;
+    }
+    function get_all_ads_in_loc(geopos) {
+      console.log('Getting Adds');
+      var data = {};
+      var from = 0;
+      var total = get_sync_total(geopos);
+      var jump = Math.round(total / 10);
+      console.log('Total Obtained Sync = ' + total + 'jump = ' + jump);
+      while(from < total)
+      {
+        from += jump;
+        console.log('from = ' + from);
+        var temp_from = Math.round((Math.random() * 1000000) + 1);
+        console.log("temp = " + temp_from);
+        $.ajax({
+          data : {
+            'lat' : geopos['lat'],
+            'lon' : geopos['lng'],
+            'from' : from, //from - 100,
+            'size' : 10
+          },
+          url : '/get_loc_ad/',
+          type: 'GET',
+          async : true,
+          success : function(re, status, xhr) {
+            console.log(re);
+            if(status == "success") {
+              add_markers(re);
+              if(total == -1) {
+                var tot = parseInt(re['total']);
+                if(tot < 1000) total = tot; else total = 1000;
+              }
+            }
+            else console.log("Unable to Get Some Markers");
+          }
+        });
+      }
+    }
+    $('#update_button').click(initialize);
+    console.log('test');
+    $(initialize);
     google.maps.event.addDomListener(window, 'load', initialize);
   </script>
-</head>
-<body>
-  <div id="map"></div>
-</body>
-</html>
+{% endblock %}

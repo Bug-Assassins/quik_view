@@ -36,8 +36,8 @@
       <label for="city">City</label>
       <select id="city_name" name="city_name">
       <option value="-1"> All Cites </option>
-      {% for key, val in city_list.items %}
-        <option value="{{val}}"> {{key}} </option>
+      {% for city in city_list %}
+        <option value="{{city.1}}"> {{city.0}} </option>
       {% endfor %}
       </select>
     </div>
@@ -81,8 +81,6 @@
         type: 'GET',
         data: data,
         success : function on_trending_data_load(result, status, xhr){
-          console.log(result);
-          console.log("drawing");
           svg.selectAll("*").remove();
           var node = svg.selectAll(".node")
             .data(bubble.nodes(classes(result))

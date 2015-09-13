@@ -94,7 +94,7 @@ var category_set = [];
 
 for (var i = 0; i < category.length; i++) {
   category_set.push(category[i]);
-  category_set[i][1] = '0'; 
+  category_set[i][1] = '0';
 }
 
 function initMap() {
@@ -108,7 +108,7 @@ function initMap() {
     map: map,
     radius: 10
   });
-  
+
 }
 function toggleHeatmap() {
   heatmap.set(heatmap.getMap() ? null : map);
@@ -163,7 +163,7 @@ function set_checkboxes() {
       $('#cat_' + category_set[i][0]).prop('checked', true);
     }
     else {
-      $('#cat_' + category_set[i][0]).prop('checked', false); 
+      $('#cat_' + category_set[i][0]).prop('checked', false);
     }
   }
 }

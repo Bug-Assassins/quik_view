@@ -59,12 +59,9 @@ function LineGraph(argsMap) {
 		}
 
 		var numSteps = tempData.values[0].length;
-		console.log("slide => add num new values: " + numSteps);
-		console.log(tempData.values[0])
 		tempData.values.forEach(function(dataArrays, i) {
 			var existingDataArrayForIndex = data.values[i];
 			dataArrays.forEach(function(v) {
-				console.log("slide => add new value: " + v);
 				// push each new value onto the existing data array
 				existingDataArrayForIndex.push(v);
 				// shift the front value off to compensate for what we just added
@@ -1085,11 +1082,9 @@ function LineGraph(argsMap) {
 	}
 
 	var error = function(message) {
-		console.log("ERROR: " + message)
 	}
 
 	var debug = function(message) {
-		console.log("DEBUG: " + message)
 	}
 
 	/* round a number to X digits: num => the number to round, dec => the number of decimals */
