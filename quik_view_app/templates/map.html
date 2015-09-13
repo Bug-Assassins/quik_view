@@ -5,7 +5,16 @@
   <h1 style="margin: 0px auto; text-align: center;" id="head_trend">Ad Location Visualizer on Quikr</h1>
   <h5><a href="/">Go Back</a></h5>
   <p>
-    Please Select the City in the floating panel.
+    Please Select the City in the floating panel. <br/>
+    This is a city-wise location visualizer for classifieds. Unfortunately, the
+    geo_ip provided by the Quikr API is locality based. As such most of the classifieds
+    are overlapping. Features of this visualizations are as follows:
+    <ul>
+      <li>Google Maps JS API</li>
+      <li>Asynchronous Loading of Maps and Markers</li>
+      <li>Dynamically City Selection</li>
+      <li>Automatic Zooming and Relocation on Map's View Port with change of city</li>
+    </ul>
   </p>
   <div id="map"></div>
   <style>
@@ -41,31 +50,27 @@
   </div>
   <script src="https://maps.googleapis.com/maps/api/js"></script>
   <script>
-    console.log("Loaded");
     var map = 0;
     var marker_list = [];
     function initialize() {
       var mapCanvas = document.getElementById('map');
       var sc = $('#city_name').val().split(',');
-      console.log(sc);
       var cent = {'lat': parseFloat(sc[0]), 'lng': parseFloat(sc[1])}
-      console.log(cent);
       var mapOptions = {
         center: cent,
         zoom: 7,
         mapTypeId: google.maps.MapTypeId.ROADMAP
       }
       map = new google.maps.Map(mapCanvas, mapOptions);
-      get_all_ads_in_loc(cent);
+      get_all_ads_in_loc($("#city_name :selected").text());
     }
-    console.log('check');
     function add_markers(re) {
       for(var i = 0; i < re['docs'].length; i++) {
         var ad = re['docs'][i];
         var marker = new google.maps.Marker({
           position: {'lat' : ad['lat'], 'lng' : ad['lng']},
           map: map,
-          title: ad['t']
+          title: 'A Classified',
         });
         marker_list.push(marker);
       }
@@ -83,52 +88,22 @@
         type: 'GET',
         async : false,
         success : function(re, status, xhr) {
-          console.log("Sync Query = ");
-          console.log(re);
           ret = parseInt(re['total']);
         }
       });
       return ret;
     }
-    function get_all_ads_in_loc(geopos) {
-      console.log('Getting Adds');
-      var data = {};
-      var from = 0;
-      var total = get_sync_total(geopos);
-      var jump = Math.round(total / 10);
-      console.log('Total Obtained Sync = ' + total + 'jump = ' + jump);
-      while(from < total)
-      {
-        from += jump;
-        console.log('from = ' + from);
-        var temp_from = Math.round((Math.random() * 1000000) + 1);
-        console.log("temp = " + temp_from);
-        $.ajax({
-          data : {
-            'lat' : geopos['lat'],
-            'lon' : geopos['lng'],
-            'from' : from, //from - 100,
-            'size' : 10
-          },
-          url : '/get_loc_ad/',
-          type: 'GET',
-          async : true,
-          success : function(re, status, xhr) {
-            console.log(re);
-            if(status == "success") {
-              add_markers(re);
-              if(total == -1) {
-                var tot = parseInt(re['total']);
-                if(tot < 1000) total = tot; else total = 1000;
-              }
-            }
-            else console.log("Unable to Get Some Markers");
-          }
-        });
-      }
+    function get_all_ads_in_loc(city_name) {
+      $.ajax({
+        url : '/get_geo?city=' + city_name.trim(),
+        type: 'GET',
+        async : true,
+        success : function(re, status, xhr) {
+          if(status == "success") add_markers(re);
+        }
+      });
     }
     $('#update_button').click(initialize);
-    console.log('test');
     $(initialize);
     google.maps.event.addDomListener(window, 'load', initialize);
   </script>

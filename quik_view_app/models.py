@@ -26,15 +26,26 @@ class quik_ad(models.Model):
 
   #Pass the dictionary to this method and it will get saved
   @classmethod
-  def load_database(dic):
+  def load_database(cls, dic):
     ads_added = 0
-    for city in dic:
-      for cat in city:
-        for ip, val in cat.iteritems():
+    for city, val in dic.iteritems():
+      for cat, val in val.iteritems():
+        for ip, val in val.iteritems():
           try:
-            quikr_ad.save_data(city, cat, ip, val)
+            quik_ad.save_data(city, cat, ip, val)
             ads_added += 1
           except Exception:
             print "Error In Saving Data"
             pass
     print "Total Number of Ads Added =", ads_added
+
+  @classmethod
+  def get_all_geoip(cls, city):
+    result_set = quik_ad.objects.filter(city=city)
+    ret = {'docs' : []}
+    for x in result_set:
+      ret['docs'].append({
+        'lat' : float(str(x.ip).split(',')[0]),
+        'lng' : float(str(x.ip).split(',')[1])
+      })
+    return ret

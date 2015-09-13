@@ -19,6 +19,8 @@ from quik_view_app.views import *
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^load_data/?$', add_static_data),
+    url(r'^get_geo/?', get_all_geo),
     url(r'^/?$', home),
     url(r'^map/?$', map_plot),
     url(r'^trending/?$', trending_plot),
