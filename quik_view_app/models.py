@@ -14,8 +14,8 @@ class quik_ad(models.Model):
     record.save()
 
   @classmethod
-  def get_by_city_cat(cls, city, cat_list):
-    result_set = quik_ad.objects.filter(city=city, category__in=cat_list)
+  def get_by_city_cat(cls, city, catlist):
+    result_set = quik_ad.objects.filter(city=city, category__in=catlist)
     result = {}
     for record in result_set:
       if record.ip in result:

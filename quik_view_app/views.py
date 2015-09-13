@@ -100,9 +100,8 @@ def get_ads_by_location(request):
 
 def get_ad_internal(request):
   city = request.GET['city_name']
-  cat_list = request.GET['category']
+  cat_list = request.GET.getlist('category[]')
   resp = quik_ad.get_by_city_cat(city, cat_list)
-  print resp
   return JsonResponse(resp)
 
 def get_all_geo(request):

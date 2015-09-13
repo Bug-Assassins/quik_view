@@ -20,6 +20,9 @@
       line-height: 30px;
       padding-left: 10px;
     }
+    .modal-dialog{
+      width : 900px;
+    }
   </style>
   <div id="floating-panel">
     <div>
@@ -51,6 +54,9 @@
             {%for cat_id, cat_name in category.items%}
             <input type="checkbox" id="cat_{{cat_id}}" name="cat_{{cat_id}}" >
             <label for="cat_{{cat.0}}">{{cat_name}}</label>
+            {% if forloop.counter0|divisibleby:4 %}
+              <br/>
+            {% endif %}
             {% endfor%}
           </div>
         </div>
@@ -79,7 +85,7 @@
 
     function initMap() {
       map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 13,
+        zoom: 5,
         center: {lat: 18.5203, lng : 73.8567},
         mapTypeId: google.maps.MapTypeId.ROADMAP
       });
@@ -87,7 +93,7 @@
       heatmap = new google.maps.visualization.HeatmapLayer({
         data: [],
         map: map,
-        radius: 10
+        radius: 30
       });
     }
     function toggleHeatmap() {
@@ -124,13 +130,20 @@
 
     function getPoints(data) {
       var ret = [];
+      var max = 0;
+      for (var p in data) {
+        var x = parseInt(data[point]);
+        if(x > max) max = x;
+      }
       for (var point in data) {
+        point = '' + point;
+        console.log(point.split(','));
         ret.push({
           location : new google.maps.LatLng(
             parseFloat(point.split(',')[0].trim()),
             parseFloat(point.split(',')[1].trim())
             ),
-          weight : parseInt(data[point])
+          weight : parseInt((parseInt(data[point]) * 15) / x),
         })
       }
       return ret;
@@ -157,7 +170,7 @@
           category_set[cat] = "0";
         }
       }
-      update_map();
+      update_map(list);
     }
 
     function update_map(list) {
@@ -170,9 +183,9 @@
           break;
         }
       }
-
+      console.log(list);
       $.ajax({
-        url : "get_heat_map_city_data/",
+        url : "/get_heat_map_city_data/",
         data : { 'city_name' : temp, 'category' : list},
         success : function(data) {
           heatmap.set('data', getPoints(data));
