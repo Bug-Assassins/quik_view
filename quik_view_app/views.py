@@ -62,7 +62,6 @@ def get_live_data(request):
     "Content-Type" : "application/json"
     })
   resp = json.load(urllib2.urlopen(req))
-  print resp
   return JsonResponse(resp['liveOnQuikrResponse']['liveOnQuikrData'])
 
 def get_ads_by_category(request):
@@ -75,7 +74,6 @@ def get_ads_by_category(request):
     "Content-Type" : "application/json"
     })
   resp = json.load(urllib2.urlopen(req))
-  print resp['AdsByCategoryResponse']['AdsByCategoryData']
   return JsonResponse(resp['AdsByCategoryResponse']['AdsByCategoryData'])
 
 def trending_plot(request):

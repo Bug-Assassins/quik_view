@@ -1,217 +1,187 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>Heatmaps</title>
-
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-<!-- Latest compiled and minified JavaScript -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-    <style>
-      html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
-      #map {
-        height: 100%;
-      }
-#floating-panel {
-  position: fixed;
-  right: 10px;
-  top: 50%;
-  z-index: 5;
-  background-color: #fff;
-  padding: 5px;
-  border: 1px solid #999;
-  text-align: center;
-  font-family: 'Roboto','sans-serif';
-  line-height: 30px;
-  padding-left: 10px;
-}
-    </style>
-  </head>
-
-  <body>
-    <div id="floating-panel">
-      
-      <div>
-        <button type="button" onclick="set_checkboxes();" class="btn btn-info" data-toggle="modal" data-target="#category_modal">Update Selection</button>
-        
-      </div>
-
-
+{% extends 'index.html' %}
+{% block title %} Quikr Classified Heat Map Visualization {% endblock %}
+{% block main_content%}
+  <style>
+    #map{
+      width: 100%;
+      height:100vh;
+      background-color: #CCC;
+    }
+    #floating-panel {
+      position: fixed;
+      right: 10px;
+      top: 50%;
+      z-index: 5;
+      background-color: #fff;
+      padding: 5px;
+      border: 1px solid #999;
+      text-align: center;
+      font-family: 'Roboto','sans-serif';
+      line-height: 30px;
+      padding-left: 10px;
+    }
+  </style>
+  <div id="floating-panel">
+    <div>
+      <button type="button" onclick="set_checkboxes();" class="btn btn-info" data-toggle="modal" data-target="#category_modal">Update Selection</button>
     </div>
-
-    <div id="map"></div>
-
-
-    <div id="category_modal" class="modal fade" role="dialog">
+  </div>
+  <h1 style="margin: 0px auto; text-align: center;" id="head_trend">Heat Map of Quikr Classifieds</h1>
+  <h5><a href="/">Go Back</a></h5>
+  <div id="map"></div>
+  <div id="category_modal" class="modal fade" role="dialog">
     <div class="modal-dialog">
-
-    <!-- Modal content-->
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h4 class="modal-title">Category List</h4>
-      </div>
-      <div class="modal-body">
-
-        <div>
-        <label for="city">City</label>
-        <select id="city_select">
-        {% for city_det in city %}
-          <option value="{{city_det.0}}">{{city_det.0}}</option>
-        {% endfor %}
-        </select>
-      </div>
-      <br>
-
-        <div id="cat_checkbox_div">
-          {%for cat_id, cat_name in category.items%}
-          <input type="checkbox" id="cat_{{cat_id}}" name="cat_{{cat_id}}" >
-          <label for="cat_{{cat.0}}">{{cat_name}}</label>
-          {% endfor%}
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Category List</h4>
         </div>
-
-      </div>
-      <div class="modal-footer">
-        <button type="button" onclick="update_filters();" class="btn btn-success" data-dismiss="modal">Update Filter</button>
-        <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+        <div class="modal-body">
+          <div>
+            <label for="city">City</label>
+            <select id="city_select">
+            {% for city_det in city %}
+              <option value="{{city_det.0}}">{{city_det.0}}</option>
+            {% endfor %}
+            </select>
+          </div>
+          <br/>
+          <div id="cat_checkbox_div">
+            {%for cat_id, cat_name in category.items%}
+            <input type="checkbox" id="cat_{{cat_id}}" name="cat_{{cat_id}}" >
+            <label for="cat_{{cat.0}}">{{cat_name}}</label>
+            {% endfor%}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" onclick="update_filters();" class="btn btn-success" data-dismiss="modal">Update Filter</button>
+          <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+        </div>
       </div>
     </div>
-
   </div>
-  </div>
-    <script>
 
+  <script>
+    var map, heatmap;
+    {% autoescape off %}
+    var city = {{city}};
+    var category = {{category}};
+    {% endautoescape %}
 
-var map, heatmap;
-{% autoescape off %}
-var city = {{city}};
-var category = {{category}};
-{% endautoescape %}
+    var category_set = [];
+    var category_count;
+    var category_set = {};
 
-var category_set = [];
-var category_count;
-var category_set = {};
-
-for (var cat in category) {
-  category_set[cat] = '0'; 
-}
-
-function initMap() {
-  map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 13,
-    center: {lat: 18.5203, lng : 73.8567},
-    mapTypeId: google.maps.MapTypeId.ROADMAP
-  });
-  heatmap = new google.maps.visualization.HeatmapLayer({
-    data: [],
-    map: map,
-    radius: 10
-  });
-
-}
-function toggleHeatmap() {
-  heatmap.set(heatmap.getMap() ? null : map);
-}
-
-function changeGradient() {
-  var gradient = [
-    'rgba(0, 255, 255, 0)',
-    'rgba(0, 255, 255, 1)',
-    'rgba(0, 191, 255, 1)',
-    'rgba(0, 127, 255, 1)',
-    'rgba(0, 63, 255, 1)',
-    'rgba(0, 0, 255, 1)',
-    'rgba(0, 0, 223, 1)',
-    'rgba(0, 0, 191, 1)',
-    'rgba(0, 0, 159, 1)',
-    'rgba(0, 0, 127, 1)',
-    'rgba(63, 0, 91, 1)',
-    'rgba(127, 0, 63, 1)',
-    'rgba(191, 0, 31, 1)',
-    'rgba(255, 0, 0, 1)'
-  ]
-  heatmap.set('gradient', heatmap.get('gradient') ? null : gradient);
-}
-
-function changeRadius() {
-  heatmap.set('radius', heatmap.get('radius') ? null : 20);
-}
-
-function changeOpacity() {
-  heatmap.set('opacity', heatmap.get('opacity') ? null : 0.2);
-}
-
-function getPoints(data) {
-  var ret = [];
-  for (var point in data) {
-    ret.push(
-    {
-      location : new google.maps.LatLng(
-        parseFloat(point.split(',')[0].trim()), 
-        parseFloat(point.split(',')[1].trim())
-        ),
-      weight : parseInt(data[point])
+    for (var cat in category) {
+      category_set[cat] = '0';
     }
-      )
-  }
-  return ret;
-}
-function set_checkboxes() {
-  for (var cat in category) {
-    if (category_set[cat] == "1") {
-      $('#cat_' + cat).prop('checked', true);
-    }
-    else {
-      $('#cat_' + cat).prop('checked', false); 
-    }
-  }
-}
 
-function update_filters() {
-  var list = [];
-  for (var cat in category) {
-      if ($('#cat_' + cat).is(":checked") ) {
-        category_set[cat] = "1";
-        list.push(cat)
+    function initMap() {
+      map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 13,
+        center: {lat: 18.5203, lng : 73.8567},
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+      });
+
+      heatmap = new google.maps.visualization.HeatmapLayer({
+        data: [],
+        map: map,
+        radius: 10
+      });
+    }
+    function toggleHeatmap() {
+      heatmap.set(heatmap.getMap() ? null : map);
+    }
+
+    function changeGradient() {
+      var gradient = [
+        'rgba(0, 255, 255, 0)',
+        'rgba(0, 255, 255, 1)',
+        'rgba(0, 191, 255, 1)',
+        'rgba(0, 127, 255, 1)',
+        'rgba(0, 63, 255, 1)',
+        'rgba(0, 0, 255, 1)',
+        'rgba(0, 0, 223, 1)',
+        'rgba(0, 0, 191, 1)',
+        'rgba(0, 0, 159, 1)',
+        'rgba(0, 0, 127, 1)',
+        'rgba(63, 0, 91, 1)',
+        'rgba(127, 0, 63, 1)',
+        'rgba(191, 0, 31, 1)',
+        'rgba(255, 0, 0, 1)'
+      ]
+      heatmap.set('gradient', heatmap.get('gradient') ? null : gradient);
+    }
+
+    function changeRadius() {
+      heatmap.set('radius', heatmap.get('radius') ? null : 20);
+    }
+
+    function changeOpacity() {
+      heatmap.set('opacity', heatmap.get('opacity') ? null : 0.2);
+    }
+
+    function getPoints(data) {
+      var ret = [];
+      for (var point in data) {
+        ret.push({
+          location : new google.maps.LatLng(
+            parseFloat(point.split(',')[0].trim()),
+            parseFloat(point.split(',')[1].trim())
+            ),
+          weight : parseInt(data[point])
+        })
       }
-      else {
-        category_set[cat] = "0";
-      }
-  }
-  update_map();
-}
-
-function update_map(list) {
-  var temp = $('#city_select').val();
-
-  console.log("selected " + temp);
-  for (var i = 0; i < city.length; i++) {
-    if (city[i][0] == temp) {
-      map.setCenter({lat : city[i][2], lng : city[i][3]});    
-      break;
+      return ret;
     }
-  }
-  
-  $.ajax({
-    url : "get_heat_map_city_data/",
-    data : { 'city_name' : temp, 'category' : list},
-    success : function(data) {
+    function set_checkboxes() {
+      for (var cat in category) {
+        if (category_set[cat] == "1") {
+          $('#cat_' + cat).prop('checked', true);
+        }
+        else {
+          $('#cat_' + cat).prop('checked', false);
+        }
+      }
+    }
 
-      heatmap.set('data', getPoints(data));
-      console.log(data);
-    },
-    dataType : 'json'
-  });
-}
-</script>
-    <script async defer
-        src="https://maps.googleapis.com/maps/api/js?libraries=visualization&callback=initMap">
-    </script>
-  </body>
-</html>
+    function update_filters() {
+      var list = [];
+      for (var cat in category) {
+        if ($('#cat_' + cat).is(":checked") ) {
+          category_set[cat] = "1";
+          list.push(cat)
+        }
+        else {
+          category_set[cat] = "0";
+        }
+      }
+      update_map();
+    }
 
+    function update_map(list) {
+      var temp = $('#city_select').val();
+
+      console.log("selected " + temp);
+      for (var i = 0; i < city.length; i++) {
+        if (city[i][0] == temp) {
+          map.setCenter({lat : city[i][2], lng : city[i][3]});
+          break;
+        }
+      }
+
+      $.ajax({
+        url : "get_heat_map_city_data/",
+        data : { 'city_name' : temp, 'category' : list},
+        success : function(data) {
+          heatmap.set('data', getPoints(data));
+          console.log(data);
+        },
+        dataType : 'json'
+      });
+    }
+  </script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?libraries=visualization&callback=initMap"></script>
+  <br/> <br/>
+{% endblock %}
