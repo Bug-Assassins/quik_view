@@ -28,5 +28,6 @@ urlpatterns = [
     url(r'^get_live/?$', get_live_data),
     url(r'^get_trending/?$', get_trending_data),
     url(r'^get_heat_map/?$', get_heat_map),
-    url(r'^get_loc_ad/?$', get_ads_by_location)
+    url(r'^get_loc_ad/?$', get_ads_by_location),
+    url(r'^get_heat_map_city_data/?$', get_heat_map_city_data)
 ]

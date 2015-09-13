@@ -41,14 +41,18 @@ def get_heat_map_context():
   # First list is category (id, name) tuple
   # Second list is city (id, name) tuple
   return {
-            'category' : [['10', 'First category'], ['11', 'Second category']],
-            'city' : [['13', 'City1'], ['12', 'City2']],
-            'selected_city' : ['13', 'City1'],
-            'category_count' : [['10', ['37.751266', '-122.403355', '5']], ['11', ['37.751266', '-122.403355', '2']]]
-          }
+            'category' : { 10: 'First category', 11: 'Second category'},
+            'city' : [['Pune', 1, 18.5203, 73.8567], ['Kolkata', 2, 22.5667, 88.3667]],
+            'selected_city' : 'Pune',
+        }
+def get_heat_map_data():
+  return {'18.64216995,73.82109070': 1, '18.48844910,73.81771088': 2}
 
 def get_heat_map(request):
   return render(request, 'heatmap.html', get_heat_map_context())
+
+def get_heat_map_city_data(request):
+  return JsonResponse(get_heat_map_data())
 
 def get_live_data(request):
   req = urllib2.Request('https://api.quikr.com/public/liveOnQuikr', headers = {

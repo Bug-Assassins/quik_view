@@ -35,18 +35,10 @@
 
   <body>
     <div id="floating-panel">
+      
       <div>
-        <label for="city">City</label>
-        <select id="city">
-        {% for i in city %}
-          <option value="{{i.0}}"> {{i.1}} </option>
-        {% endfor %}
-        </select>
-      </div>
-      <div>
-          <!-- Trigger the modal with a button -->
-        <button type="button" onclick="set_checkboxes();" class="btn btn-info btn-lg" data-toggle="modal" data-target="#category_modal">Select Areas</button>
-
+        <button type="button" onclick="set_checkboxes();" class="btn btn-info" data-toggle="modal" data-target="#category_modal">Update Selection</button>
+        
       </div>
 
 
@@ -66,10 +58,20 @@
       </div>
       <div class="modal-body">
 
+        <div>
+        <label for="city">City</label>
+        <select id="city_select">
+        {% for city_det in city %}
+          <option value="{{city_det.0}}">{{city_det.0}}</option>
+        {% endfor %}
+        </select>
+      </div>
+      <br>
+
         <div id="cat_checkbox_div">
-          {%for cat in category%}
-          <input type="checkbox" id="cat_{{cat.0}}" name="cat_{{cat.0}}" >
-          <label for="cat_{{cat.0}}">{{cat.1}}</label>
+          {%for cat_id, cat_name in category.items%}
+          <input type="checkbox" id="cat_{{cat_id}}" name="cat_{{cat_id}}" >
+          <label for="cat_{{cat.0}}">{{cat_name}}</label>
           {% endfor%}
         </div>
 
@@ -87,24 +89,26 @@
 
 var map, heatmap;
 {% autoescape off %}
-var category_count = {{category_count}};
+var city = {{city}};
 var category = {{category}};
 {% endautoescape %}
-var category_set = [];
 
-for (var i = 0; i < category.length; i++) {
-  category_set.push(category[i]);
-  category_set[i][1] = '0';
+var category_set = [];
+var category_count;
+var category_set = {};
+
+for (var cat in category) {
+  category_set[cat] = '0'; 
 }
 
 function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {
     zoom: 13,
-    center: {lat: 37.751266, lng: -122.403355},
+    center: {lat: 18.5203, lng : 73.8567},
     mapTypeId: google.maps.MapTypeId.ROADMAP
   });
   heatmap = new google.maps.visualization.HeatmapLayer({
-    data: getPoints(),
+    data: [],
     map: map,
     radius: 10
   });
@@ -142,44 +146,68 @@ function changeOpacity() {
   heatmap.set('opacity', heatmap.get('opacity') ? null : 0.2);
 }
 
-function getPoints() {
+function getPoints(data) {
   var ret = [];
-  for (var i = 0; i < category_count.length; i++) {
-    var cati = category_count[i];
-    if (category_set[i][1] == "1") {
-      for (var j = 1; j < cati.length; j++) {
-        ret.push(
-          {
-            'location' : new google.maps.LatLng(parseFloat(cati[j][0]), parseFloat(cati[j][1])), 'weight' : parseFloat(cati[j][2])
-          });
-      }
+  for (var point in data) {
+    ret.push(
+    {
+      location : new google.maps.LatLng(
+        parseFloat(point.split(',')[0].trim()), 
+        parseFloat(point.split(',')[1].trim())
+        ),
+      weight : parseInt(data[point])
     }
+      )
   }
   return ret;
 }
 function set_checkboxes() {
-  for (var i = 0; i < category_set.length; i++) {
-    if (category_set[i][1] == "1") {
-      $('#cat_' + category_set[i][0]).prop('checked', true);
+  for (var cat in category) {
+    if (category_set[cat] == "1") {
+      $('#cat_' + cat).prop('checked', true);
     }
     else {
-      $('#cat_' + category_set[i][0]).prop('checked', false);
+      $('#cat_' + cat).prop('checked', false); 
     }
   }
 }
 
 function update_filters() {
-  for (var i = 0; i < category_set.length; i++) {
-      if ($('#cat_' + category_set[i][0]).is(":checked") ) {
-        category_set[i][1] = "1";
+  var list = [];
+  for (var cat in category) {
+      if ($('#cat_' + cat).is(":checked") ) {
+        category_set[cat] = "1";
+        list.push(cat)
       }
       else {
-        category_set[i][1] = "0";
+        category_set[cat] = "0";
       }
   }
-  heatmap.set('data', getPoints());
+  update_map();
 }
 
+function update_map(list) {
+  var temp = $('#city_select').val();
+
+  console.log("selected " + temp);
+  for (var i = 0; i < city.length; i++) {
+    if (city[i][0] == temp) {
+      map.setCenter({lat : city[i][2], lng : city[i][3]});    
+      break;
+    }
+  }
+  
+  $.ajax({
+    url : "get_heat_map_city_data/",
+    data : { 'city_name' : temp, 'category' : list},
+    success : function(data) {
+
+      heatmap.set('data', getPoints(data));
+      console.log(data);
+    },
+    dataType : 'json'
+  });
+}
 </script>
     <script async defer
         src="https://maps.googleapis.com/maps/api/js?libraries=visualization&callback=initMap">
